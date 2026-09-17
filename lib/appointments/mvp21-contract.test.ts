@@ -1,0 +1,42 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const migration = readFileSync(
+  new URL("../../supabase/migrations/20260916070000_mvp21_weekday_services.sql", import.meta.url),
+  "utf8",
+);
+const redirects = JSON.parse(readFileSync(new URL("../../vercel.json", import.meta.url), "utf8")) as {
+  redirects: { source: string; destination: string; permanent: boolean }[];
+};
+
+describe("MVP 2.1 weekday availability contract", () => {
+  it("preserves current behavior by seeding all weekdays in all-services mode", () => {
+    expect(migration).toContain("select weekday, 'all'");
+    expect(migration).toContain("from generate_series(1, 7)");
+  });
+
+  it("keeps all mode dynamic for services created later", () => {
+    expect(migration).toContain("rule.mode = 'all'");
+    expect(migration).not.toContain("insert into public.weekday_service_selections (weekday, service_id)\nselect weekday");
+  });
+
+  it("validates the weekday service rule again inside appointment creation", () => {
+    expect(migration).toContain("create or replace function private.create_appointment_internal");
+    expect(migration).toContain("message = 'service_unavailable_on_weekday'");
+    expect(migration.match(/weekday_service_selections/g)?.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("fixes formatted phone validation with an explicit digit pattern", () => {
+    expect(migration).toContain("regexp_replace(customer_phone, '[^0-9]', '', 'g')");
+    expect(migration).toContain("regexp_replace(coalesce(p_customer_phone, ''), '[^0-9]', '', 'g')");
+  });
+});
+
+describe("canonical route shortcuts", () => {
+  it("declares shortcuts for booking and administration", () => {
+    expect(redirects.redirects).toEqual(expect.arrayContaining([
+      { source: "/agendar", destination: "/barbearia-lisboa/agendar", permanent: false },
+      { source: "/agenda", destination: "/barbearia-lisboa/agenda", permanent: false },
+    ]));
+  });
+});
