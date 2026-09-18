@@ -3,12 +3,12 @@ export const business = {
   shortName: "BL",
   tagline: "Estilo, precisão e presença.",
   whatsapp: "5519995376340",
-  whatsappDisplay: "(19) 99537-6340",
+  whatsappDisplay: "(19) 99999-9999",
   whatsappMessage:
     "Olá! Conheci a Barbearia Lisboa pelo site e gostaria de agendar um horário.",
   address: "Endereço a definir",
-  instagram: "@lisboasamuu",
-  instagramUrl: "https://www.instagram.com/lisboasamuu",
+  instagram: "@lisboasamu.dev",
+  instagramUrl: "https://www.instagram.com/lisboasamu.dev/",
   openingHours: "Seg–sex, 9h–19h · sáb, 9h–17h",
   contactIsPlaceholder: true,
 } as const;
